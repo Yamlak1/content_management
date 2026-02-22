@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: content_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: content_publishing
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d content_publishing"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: content_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      JWT_SECRET: replace-with-a-long-random-secret
+      JWT_EXPIRES_IN: 1h
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/content_publishing?schema=public
+    ports:
+      - "4000:4000"
+
+volumes:
+  postgres_data:

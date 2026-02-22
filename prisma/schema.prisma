@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ArticleStatus {
+  draft
+  published
+}
+
+model Author {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique
+  passwordHash String?
+  createdAt DateTime  @default(now())
+  articles  Article[]
+}
+
+model Article {
+  id          String        @id @default(uuid()) @db.Uuid
+  title       String
+  body        String
+  tags        String[]
+  status      ArticleStatus @default(draft)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  authorId    String        @db.Uuid
+  author      Author        @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@index([tags], type: Gin)
+}
