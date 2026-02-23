@@ -7,7 +7,7 @@ export const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5174",
+    origin: "https://content-frontend-sable.vercel.app",
   }),
 );
 app.use(express.json());
